@@ -14,6 +14,7 @@
             v-model="loginForm.code"
             style="width:235px;margin-right:10px"
             placeholder="请输入验证码"
+             @keyup.enter.native="login"
           ></el-input>
           <el-button>发送验证码</el-button>
         </el-form-item>
@@ -28,6 +29,7 @@
   </div>
 </template>
 <script>
+import local from '@/utils/local.js'
 export default {
   data () {
     var zhengze = (rule, value, callback) => {
@@ -39,8 +41,8 @@ export default {
     }
     return {
       loginForm: {
-        mobile: '',
-        code: ''
+        mobile: '15942332952',
+        code: '246810'
       },
       rules: {
         mobile: [
@@ -56,18 +58,23 @@ export default {
   },
   methods: {
     login () {
-      this.$refs['loginForm'].validate(valid => {
+      //       async&await
+      // - 基于promise去使用
+      // - await 修饰的返回promise的函数  的返回值是 promise成功的结果
+      // - await 必须在 async 修饰的函数内使用
+      // - await 修饰的函数是 同步执行 阻塞程序运行
+      // - async 修饰的函数是异步执行
+      // 获取表单组件实例==>调用校验函数
+      this.$refs['loginForm'].validate(async valid => {
         if (valid) {
-          this.$http
-            .post('authorizations', this.loginForm)
-            // 成功
-            .then(res => {
-              this.$router.push('/')
-            })
-            // 失败
-            .catch(() => {
-              this.$message.error('手机号或验证码错误')
-            })
+          // 当一段代码不能保证一定没有报错 try {} catch (e) {} 捕获异常处理异常
+          try {
+            const { data: { data } } = await this.$http.post('authorizations', this.loginForm)
+            local.setUser(data)
+            this.$router.push('/')
+          } catch (e) {
+            this.$message.error('手机号或验证码错误')
+          }
         }
       })
     }
